@@ -17,8 +17,10 @@ async function getFiles(dir) {
     });
     const files = await Promise.all(dirents.map((dirent) => {
         const res = resolve(dir, dirent.name);
-        if (dirent.isDirectory()){
+        if (!res.endsWith('.json')){
             paths.push(res);
+        }
+        if (dirent.isDirectory()){
             return getFiles(res);
         }else{
             return res;
