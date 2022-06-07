@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="file" id="file" />
+    <button id="read-file">Read File</button>
+    <p id="content"></p>
+    <script>
+        document.querySelector("#read-file").addEventListener('click', function () {
+            // no file selected to read
+            console.log("click");
+            if (document.querySelector("#file").value == '') {
+                console.log('No file selected');
+                return;
+            }
+
+            var file = document.querySelector("#file").files[0];
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                // binary data
+                document.getElementById("content").innerHTML = e.target.result
+                console.log(e.target.result);
+            };
+            reader.onerror = function (e) {
+                // error occurred
+                console.log('Error : ' + e.type);
+            };
+            reader.readAsBinaryString(file);
+        });
+    </script>
+</body>
+
+</html>
