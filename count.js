@@ -4,7 +4,19 @@ const path = require("path");
 const unzipper = require("unzipper");
 const resolve = require("path").resolve;
 const { readdir } = require("fs").promises;
+const sloc = require('node-sloc')
 
+const options = {
+  path: './src/Main.java', // Required. The path to walk or file to read.
+  extensions: ['java'], // Additional file extensions to look for. Required if ignoreDefault is set to true.
+  ignorePaths: ['node_modules'], // A list of directories to ignore. Supports glob patterns.
+  ignoreDefault: false, // Whether to ignore the default file extensions or not
+  logger: console.log, // Optional. Outputs extra information to if specified.
+}
+
+sloc(options).then((res) => {
+  console.log(res);
+})
 var tree = [];
 var dirs = [];
 
