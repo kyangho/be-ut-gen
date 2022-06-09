@@ -69,10 +69,21 @@ async function arrangeIntoTree(paths) {
       if (existingPath) {
         currentLevel = existingPath.children;
       } else {
-        var methods;
-        var dirPath;
-        var data;
-        var newNode;
+        let methods;
+        let dirPath;
+        let data;
+        let newNode;
+        let parent = '';
+        let key = '';
+        if (j > 0){
+          for (let k = 0; k < j; k++){
+            parent += path[k] + '/';
+            
+          }
+        }
+        for (let k = 0; k <= j; k++){
+          key += String(k + 1);
+        }
         if (part.endsWith(".log")) {
           dirs.forEach((dir) => {
             if (dir.includes(part)) {
@@ -86,7 +97,9 @@ async function arrangeIntoTree(paths) {
             loc += e.LOC;
           });
           newNode = {
+            key: parseInt(key),
             name: part,
+            parent: parent,
             path: dirPath,
             methods: methods,
             loc: loc,
@@ -94,7 +107,9 @@ async function arrangeIntoTree(paths) {
           };
         } else {
           newNode = {
+            key: parseInt(key),
             name: part,
+            parent: parent,
             path: dirPath,
             children: [],
           };
@@ -133,7 +148,6 @@ function bfs(array, key, value) {
     }
   }
 }
-
 function updateNode(data, key, kvalue, property, pvalue) {
   for (let i = 0; i < data.length; i++) {
     if (data[i].children.length > 0) {
@@ -300,13 +314,15 @@ const startAnalyze = async () => {
       ignoreDefault: false, // Whether to ignore the default file extensions or not
       logger: console.log, // Optional. Outputs extra information to if specified.
     };
-    sloc(options).then((res) => {
-      var path = dirs[i];
-      let name = path.replace(/.*\\|\//g);
-      if (res != null) {
-        updateNode(tree, "name", name, "sloc", res.sloc);
-      }
-    });
+    // sloc(options).then((res) => {
+    //   var path = dirs[i];
+    //   let name = path.replace(/.*\\|\//g);
+    //   console.log(dirs[i]);
+    //   console.log(res.sloc);
+    //   if (res != null) {
+    //     updateNode(tree, "name", name, "sloc", res.sloc);
+    //   }
+    // });
   }
   return tree;
 };
