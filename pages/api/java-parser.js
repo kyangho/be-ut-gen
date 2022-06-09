@@ -19,7 +19,7 @@ export const config = {
         bodyParser: false,
     },
 };
-const appPath = process.env.ROOT;
+const appPath = process.env.ROOT || '';
 
 const apiRoute = nextConnect({
 

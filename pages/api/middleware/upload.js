@@ -6,6 +6,7 @@ const path = require('path');
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    console.log('ahahahahah');
       fs.mkdir("public/upload",
       { recursive: true }, (err) => {
         if (err) {
@@ -15,6 +16,7 @@ var storage = multer.diskStorage({
       });
   },
   filename: (req, file, cb) => {
+    console.log('heeheheheh');
     const name = file.originalname.split(" ").join();
     if (path.extname(name) === '.zip') {
       cb(null, name);
