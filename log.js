@@ -1,5 +1,3 @@
-import nextConnect from 'next-connect';
-import multerInstance from './middleware/upload';
 const {
     parse
 } = require("java-parser");
@@ -13,16 +11,12 @@ const {
 } = require('fs').promises;
 const AdmZip = require("adm-zip");
 
-const sloc = require('node-sloc')
-var index = 1;
-export const config = {
-  api: {
-      bodyParser: false,
-  },
-};
+const sloc = require('node-sloc');
+const { dir } = require("console");
 
 var tree = [];
 var dirs = [];
+var index = 1;
 const appPath = process.env.ROOT || '';
 
 async function getFiles(dir) {
@@ -75,7 +69,7 @@ async function arrangeIntoTree(paths) {
     var currentLevel = tree;
     for (var j = 0; j < path.length; j++) {
       var part = path[j];
-      if (j + 1 < path.length && path[j + 1].endsWith('.json') || path[j].endsWith('.json')){
+      if (!part.endsWith('.log')){
         continue;
       }
       var existingPath = findWhere(currentLevel, "name", part);
@@ -95,6 +89,8 @@ async function arrangeIntoTree(paths) {
           }
         }
         let tmpParent = await getParent(tree, parent.replace(/\/$/g, ''));
+        console.log(`${tmpParent != null ? tmpParent.name : ''} | ${tmpParent != null ? tmpParent.key : ''} | ${part}`);
+
         if (tmpParent != null) {
           key = String(tmpParent.key) + String(tmpParent.children.length + 1);
         } else {
@@ -138,7 +134,6 @@ async function arrangeIntoTree(paths) {
   }
   return tree;
 }
-
 function findWhere(array, key, value) {
   let t = 0;
   while (t < array.length && array[t][key] != value) {
@@ -282,9 +277,7 @@ async function analyzeData(data) {
         startLine = parseInt(attr[2].replace(/[^\d]/g, ""));
       } else if (attr[0] == "OUT") {
         endLine =
-          attr[2].replace(/[^\d]/g, "") != ""
-            ? parseInt(attr[2].replace(/[^\d]/g, ""))
-            : null;
+          attr[2].replace(/[^\d]/g, "") != "" ? parseInt(attr[2].replace(/[^\d]/g, "")) : null;
       }
       if (index != -1) {
         if (attr[0] == "IN") {
@@ -316,8 +309,8 @@ async function readFile(dir) {
   });
   return readFiles;
 }
-
 const startAnalyze = async () => {
+  await getAllPaths('public/output/log');
   for (let i = 0; i < dirs.length; i++) {
     let path = dirs[i];
     path = path.replace(/.+log\\/g, "");
@@ -342,72 +335,8 @@ const startAnalyze = async () => {
     //   }
     // });
   }
+  console.log(await getParent(tree, 'util'));
   return tree;
 };
 
-// start();
-
-
-const apiRoute = nextConnect({
-  onError(error, req, res) {
-    res.status(501).json({
-      error: `Sorry something Happened! ${error.message}`,
-    });
-  },
-  onNoMatch(req, res) {
-    res.status(405).json({
-      error: `Method '${req.method}' Not Allowed`,
-    });
-  },
-});
-
-var bodyParser = require("body-parser");
-apiRoute.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
-apiRoute
-  .use(multerInstance)
-  .get(async (req, res) => {
-    
-    return res.json('hello');
-  })
-  .post(async (req, res) => {
-    // apply them
-    // var data = await startAnalyze();
-    var fileJava = req.file;
-    console.log(req.file);
-    if (fileJava) {
-      if (path.extname(fileJava.originalname) === ".zip") {
-        fs.mkdirSync(path.join(appPath, "public/output"), {
-          recursive: true,
-        });
-
-        fs.mkdirSync(path.join(appPath, "public/json_results"), {
-          recursive: true,
-        });
-
-        await fs
-          .createReadStream(`${appPath}/public/upload/${fileJava.originalname}`)
-          .pipe(
-            unzipper.Extract({
-              path: `${appPath}/public/output`,
-            })
-          )
-          .promise();
-        dirs = await getAllPaths(path.join(appPath, `public/output/${fileJava.originalname.replace('.zip', '')}`));
-
-        let data = await startAnalyze();
-        fs.mkdirSync(path.join(appPath, "public/testcases"), {
-          recursive: true,
-        });
-        fs.writeFileSync(path.join(appPath, `public/testcases/${fileJava.originalname.replace('.zip', '')}.json`), JSON.stringify(data));
-        return res.json(data);
-      }
-    } else {
-      return res.json("fail");
-    }
-  });
-
-export default apiRoute;
+startAnalyze();
