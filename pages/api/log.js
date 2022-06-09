@@ -114,7 +114,7 @@ async function arrangeIntoTree(paths) {
             loc += e.LOC;
           });
           newNode = {
-            key: parseInt(key),
+            key: key,
             name: part,
             parent: parent,
             path: dirPath,
@@ -124,7 +124,7 @@ async function arrangeIntoTree(paths) {
           };
         } else {
           newNode = {
-            key: parseInt(key),
+            key: key,
             name: part,
             parent: parent,
             path: dirPath,
