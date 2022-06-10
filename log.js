@@ -13,12 +13,10 @@ const AdmZip = require("adm-zip");
 
 const sloc = require('node-sloc');
 const { dir } = require("console");
-
 var tree = [];
 var dirs = [];
 var index = 1;
 const appPath = process.env.ROOT || '';
-
 async function getFiles(dir) {
   const dirents = await readdir(dir, {
     withFileTypes: true,
@@ -44,7 +42,7 @@ async function getAllPaths(dir) {
       }
       if (dirent.isDirectory()) {
         return getAllPaths(res);
-      } else {
+      } else if (!res.endsWith('.json')){
         return res;
       }
     })
@@ -167,6 +165,7 @@ function updateNode(data, key, kvalue, property, pvalue) {
       updateNode(data[i].children, key, kvalue, property, pvalue);
     }
     if (data[i][key] == kvalue) {
+      console.log(data[i]);
       data[i][property] = pvalue;
       return data;
     }
@@ -318,25 +317,24 @@ const startAnalyze = async () => {
     tree = await arrangeIntoTree(path);
   }
   for (let i = 0; i < dirs.length; i++) {
+    let path = dirs[i].replace(/\\public\\output\\log/g, '\\src').replace('.log', '.java');
     let options = {
-      path: dirs[i], // Required. The path to walk or file to read.
+      path: path, // Required. The path to walk or file to read.
       extensions: ["java"], // Additional file extensions to look for. Required if ignoreDefault is set to true.
       ignorePaths: ["node_modules"], // A list of directories to ignore. Supports glob patterns.
       ignoreDefault: false, // Whether to ignore the default file extensions or not
       logger: console.log, // Optional. Outputs extra information to if specified.
     };
-    // sloc(options).then((res) => {
-    //   var path = dirs[i];
-    //   let name = path.replace(/.*\\|\//g);
-    //   console.log(dirs[i]);
-    //   console.log(res.sloc);
-    //   if (res != null) {
-    //     updateNode(tree, "name", name, "sloc", res.sloc);
-    //   }
-    // });
+    let res = await sloc(options).then((res) => {
+      return res;
+    });
+    if (res != null){
+      let path = dirs[i];
+      let name = path.replace(/.*\\|\//g, '');
+      updateNode(tree, "name", name, "sloc", res.sloc);
+    }
   }
-  console.log(await getParent(tree, 'util'));
+  console.log(tree);
   return tree;
 };
-
 startAnalyze();
