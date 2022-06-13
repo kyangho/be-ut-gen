@@ -1,0 +1,9 @@
+[shopping]
+IN - 1: { row: 35 }
+OUT - 1: { row: 36 }
+IN - 2: { row: 36 }
+OUT - 2: { row: 47 }
+IN - 4: { row: 47 }
+IN - 5: { row: 47 }
+[shopping]
+OUT - 5: { row: 55 }

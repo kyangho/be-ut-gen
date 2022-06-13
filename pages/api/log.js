@@ -16,11 +16,7 @@ const AdmZip = require("adm-zip");
 
 const sloc = require('node-sloc')
 var index = 1;
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
+
 
 var tree = [];
 var dirs = [];
@@ -132,7 +128,6 @@ async function arrangeIntoTree(paths) {
                         key: key,
                         name: part,
                         parent: parent,
-                        path: dirPath,
                         methods: methods,
                         loc: loc,
                         children: [],
@@ -142,7 +137,6 @@ async function arrangeIntoTree(paths) {
                         key: key,
                         name: part,
                         parent: parent,
-                        path: dirPath,
                         children: [],
                     };
                 }
@@ -332,7 +326,7 @@ async function readFile(dir) {
     return readFiles;
 }
 
-const startAnalyze = async () => {
+const startAnalyze = async (projectToken) => {
     for (let i = 0; i < dirs.length; i++) {
         let path = dirs[i];
         path = path.replace(/.+log\\/g, "");
@@ -340,7 +334,7 @@ const startAnalyze = async () => {
         tree = await arrangeIntoTree(path);
     }
     for (let i = 0; i < dirs.length; i++) {
-        let path = dirs[i].replace(/\\public\\output\\log/g, '\\src').replace('.log', '.java');
+        let path = dirs[i].replace(`\\public\\output\\${projectToken}\\log`, '\\src').replace('.log', '.java');
 
         let options = {
             path: path, // Required. The path to walk or file to read.
@@ -368,7 +362,11 @@ const startAnalyze = async () => {
 };
 
 //========================================== LOG API ======================================================
-
+export const config = {
+    api: {
+        bodyParser: false,
+    },
+};
 const apiRoute = nextConnect({
     onError(error, req, res) {
         res.status(501).json({
@@ -397,37 +395,44 @@ apiRoute
     .post(async (req, res) => {
         // apply them
         // var data = await startAnalyze();
+        var projectToken = req.query.token;
+        var testcase = req.query.testcase;
         var fileJava = req.file;
-        if (fileJava) {
-            if (path.extname(fileJava.originalname) === ".zip") {
-                fs.mkdirSync(path.join(appPath, "public/output"), {
-                    recursive: true,
-                });
-
-                fs.mkdirSync(path.join(appPath, "public/json_results"), {
-                    recursive: true,
-                });
-
-                await fs
-                    .createReadStream(`${appPath}/public/upload/${fileJava.originalname}`)
-                    .pipe(
-                        unzipper.Extract({
-                            path: `${appPath}/public/output`,
-                        })
-                    )
-                    .promise();
-                await getAllPaths(path.join(appPath, `public/output/${fileJava.originalname.replace('.zip', '')}`));
-
-                let data = await startAnalyze();
-                fs.mkdirSync(path.join(appPath, "public/testcases"), {
-                    recursive: true,
-                });
-                fs.writeFileSync(path.join(appPath, `public/testcases/${fileJava.originalname.replace('.zip', '')}.json`), JSON.stringify(data));
-                return res.json(data);
+        if (projectToken){
+            if (fileJava) {
+                if (path.extname(fileJava.originalname) === ".zip") {
+                    fs.mkdirSync(path.join(appPath, `public/output/${projectToken}`), {
+                        recursive: true,
+                    });
+    
+                    fs.mkdirSync(path.join(appPath, "public/json_results"), {
+                        recursive: true,
+                    });
+    
+                    await fs
+                        .createReadStream(`${appPath}/public/upload/${fileJava.originalname}`)
+                        .pipe(
+                            unzipper.Extract({
+                                path: `${appPath}/public/output/${projectToken}`,
+                            })
+                        )
+                        .promise();
+                    await getAllPaths(path.join(appPath, `public/output/${projectToken}/${fileJava.originalname.replace('.zip', '')}`));
+                    console.log(dirs);
+                    let data = await startAnalyze(projectToken);
+                    fs.mkdirSync(path.join(appPath, `public/${projectToken}/${testcase}`), {
+                        recursive: true,
+                    });
+                    fs.writeFileSync(path.join(appPath, `public/${projectToken}/${testcase}.json`), JSON.stringify(data));
+                    return res.json(data);
+                }
+            } else {
+                return res.json("fail");
             }
-        } else {
-            return res.json("fail");
+        }else{
+            return res.json("Project token is not valid");
         }
+        
     });
 
 export default apiRoute;

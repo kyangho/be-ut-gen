@@ -77,36 +77,36 @@ function getClassData(data, className) { }
 
 export default function handler(req, res) {
     const { slug } = req.query;
-    let uri = slug.join("/");
     //mathc path: /testcase/method
     //match path: /testcase/class
     //match path: /testcase/
-    if (uri.match(/\w+\/method/g)) {
-        let testcase = uri.split("/")[0];
-        let method = uri.split("/");
-        let data = fs.readFileSync(
-            path.join(appPath, `public/testcases/${testcase}.json`)
-        );
-        data = JSON.parse(data);
-        res.end(`${data}`);
-    } else if (uri.match(/\w+\/class/g)) {
-        let testcase = uri.split("/")[0];
-        let data = fs.readFileSync(
-            path.join(appPath, `public/testcases/${testcase}.json`)
-        );
-        data = JSON.parse(data);
-        let result = getAllClass(data);
-        res.end(`${JSON.stringify(result)}`);
-    } else if (uri.match(/\w+\/all/g)) {
-        let testcase = uri.split("/")[0];
-        let method = uri.split("/");
-        let data = fs.readFileSync(
-            path.join(appPath, `public/testcases/${testcase}.json`)
-        );
-        // data = JSON.parse(data);
-        // console.log(data);
-        res.end(`${data}`);
-    } else {
+    if (slug.length == 3){
+        let projectToken = slug[0];
+        let testcase = slug[1];
+        if (slug[3] == 'method') {
+            let data = fs.readFileSync(
+                path.join(appPath, `public/testcases/${testcase}.json`)
+            );
+            data = JSON.parse(data);
+            res.end(`${data}`);
+        } else if (slug[2] == 'class') {
+            let data = fs.readFileSync(
+                path.join(appPath, `public/testcases/${testcase}.json`)
+            );
+            data = JSON.parse(data);
+            let result = getAllClass(data);
+            res.end(`${JSON.stringify(result)}`);
+        } else if (slug[2] == 'all') {
+            let data = fs.readFileSync(
+                path.join(appPath, `public/${projectToken}/${testcase}.json`)
+            );
+            // data = JSON.parse(data);
+            // console.log(data);
+            res.end(`${data}`);
+        } else{
+            res.end(`Hello world`);
+        }
+    }else{
         res.end(`Hello world`);
     }
 }
