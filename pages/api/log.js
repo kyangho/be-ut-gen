@@ -129,6 +129,7 @@ async function arrangeIntoTree(paths) {
                         name: part,
                         parent: parent,
                         methods: methods,
+                        path: dirPath,
                         loc: loc,
                         children: [],
                     };
@@ -136,6 +137,7 @@ async function arrangeIntoTree(paths) {
                     newNode = {
                         key: key,
                         name: part,
+                        path: dirPath,
                         parent: parent,
                         children: [],
                     };
@@ -417,14 +419,14 @@ apiRoute
                             })
                         )
                         .promise();
-                    await getAllPaths(path.join(appPath, `public/output/${projectToken}/${fileJava.originalname.replace('.zip', '')}`));
+                    await getAllPaths(path.join(appPath, `public/output/${projectToken}/log`));
                     console.log(dirs);
                     let data = await startAnalyze(projectToken);
-                    fs.mkdirSync(path.join(appPath, `public/${projectToken}/${testcase}`), {
+                    fs.mkdirSync(path.join(appPath, `public/${projectToken}`), {
                         recursive: true,
                     });
                     fs.writeFileSync(path.join(appPath, `public/${projectToken}/${testcase}.json`), JSON.stringify(data));
-                    return res.json(data);
+                    return res.json('success');
                 }
             } else {
                 return res.json("fail");

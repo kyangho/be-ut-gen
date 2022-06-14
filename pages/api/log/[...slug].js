@@ -1,3 +1,4 @@
+import { SlowBuffer } from "buffer";
 import JSONParser from "formidable/src/parsers/JSON";
 
 const appPath = process.env.ROOT || "";
@@ -80,10 +81,23 @@ export default function handler(req, res) {
     //mathc path: /testcase/method
     //match path: /testcase/class
     //match path: /testcase/
-    if (slug.length == 3){
+    if (slug.length == 2){
+        let data = [];
+        if (slug[1] == 'all') {
+            let dirs = fs.readdirSync(
+                path.join(appPath, `public/${slug[0]}`)
+            );
+            dirs.forEach(dir => {
+                data.push(dir.replace(/.+${slug[0]}\/|'\\/g, '').replace(/.json$/g, ''))
+            })
+            data = JSON.stringify(data);
+            res.end(`${data}`);
+        }
+    }
+    else if (slug.length == 3){
         let projectToken = slug[0];
         let testcase = slug[1];
-        if (slug[3] == 'method') {
+        if (slug[2] == 'method') {
             let data = fs.readFileSync(
                 path.join(appPath, `public/testcases/${testcase}.json`)
             );
@@ -91,7 +105,7 @@ export default function handler(req, res) {
             res.end(`${data}`);
         } else if (slug[2] == 'class') {
             let data = fs.readFileSync(
-                path.join(appPath, `public/testcases/${testcase}.json`)
+                path.join(appPath, `public/${projectToken}/${testcase}.json`)
             );
             data = JSON.parse(data);
             let result = getAllClass(data);
